@@ -1,0 +1,29 @@
+# Dependencies
+node_modules/
+frontend/node_modules/
+
+# Frontend Build Output (GitHub Actions builds this automatically on push)
+frontend/dist/
+frontend/.vite/
+
+# Python Cache & Virtual Environments
+__pycache__/
+*.py[cod]
+*$py.class
+backend/__pycache__/
+venv/
+backend/venv/
+env/
+backend/env/
+
+# Sensitive Local Files
+backend/.env
+backend/foodsave.db
+*.db
+
+# Logs & OS Files
+*.log
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
