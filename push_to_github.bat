@@ -1,60 +1,59 @@
 @echo off
-title Push FoodSave - All Code & Live Website to GitHub
+title Push FoodSave - Deploy Live Website to GitHub
 color 0A
 echo ==============================================================================
 echo       FOODSAVE - PUSH ALL CODE AND DEPLOY LIVE TO GITHUB
 echo ==============================================================================
 echo.
-echo Make sure you have created an empty repository on GitHub:
-echo   https://github.com/new  (Name it: foodsave)
-echo.
-echo Enter or paste your GitHub repository URL below.
-echo Example: https://github.com/your-username/foodsave.git
-echo.
-set /p REPO_URL="GitHub Repository URL: "
 
-if "%REPO_URL%"=="" (
-    echo [ERROR] No URL entered. Exiting...
-    pause
-    exit /b
+set DEFAULT_URL=https://github.com/mayankprajapati21207-a11y/FoodSave.git
+echo Current GitHub Repository:
+echo   %DEFAULT_URL%
+echo.
+echo Press ENTER to use this repository, or paste a new URL below:
+set /p USER_URL="Repository URL [%DEFAULT_URL%]: "
+
+if "%USER_URL%"=="" (
+    set REPO_URL=%DEFAULT_URL%
+) else (
+    set REPO_URL=%USER_URL%
 )
 
 echo.
-echo [*] Staging all frontend, backend, and configuration code files...
-git init
-git config user.name "Mayank Prajapati"
-git config user.email "mayankprajapati@foodsave.org"
-git branch -M main
+echo [*] Staging all files and fixes...
 git remote remove origin >nul 2>&1
 git remote add origin %REPO_URL%
+git branch -M main
 
 git add .
-git commit -m "Upload complete FoodSave platform: backend, frontend, responsive mobile UI, and live deployment workflow"
+git commit -m "Fix GitHub Actions deployment with legacy-peer-deps and gh-pages publish"
 
 echo.
-echo [*] Uploading all code files to GitHub main branch...
+echo [*] Pushing to GitHub main branch...
 git push -u origin main
 
 if %errorlevel% equ 0 (
     echo.
     echo ==============================================================================
-    echo [SUCCESS] All code files have been successfully uploaded to GitHub!
+    echo [SUCCESS] All code and fixes pushed to GitHub successfully!
     echo ==============================================================================
     echo.
-    echo TO GET YOUR LIVE WEBSITE LINK FOR USERS:
-    echo 1. Open your repository on https://github.com in your web browser.
-    echo 2. Click "Settings" (top tab) -^> "Pages" (left sidebar).
-    echo 3. Under "Build and deployment" -^> "Source", select "GitHub Actions".
-    echo 4. Wait 1-2 minutes. GitHub will display your LIVE WEBSITE LINK:
-    echo    https://your-username.github.io/foodsave/
+    echo GitHub Actions will now automatically build and publish your website.
     echo.
-    echo Anyone can open that link on their mobile phone, tablet, or laptop!
+    echo TO SEE YOUR LIVE WEBSITE:
+    echo 1. Open: https://github.com/mayankprajapati21207-a11y/FoodSave/settings/pages
+    echo 2. Under "Build and deployment" -^> "Source":
+    echo    - Select: "Deploy from a branch"
+    echo    - Branch: "gh-pages" (Folder: /root)
+    echo    - Click "Save"
+    echo.
+    echo 3. Wait 30 seconds. Your LIVE WEBSITE LINK will be active:
+    echo    https://mayankprajapati21207-a11y.github.io/FoodSave/
     echo ==============================================================================
 ) else (
     echo.
     echo ==============================================================================
-    echo [NOTE] If you were prompted for GitHub login, please sign in.
-    echo If you already pushed previously, try pushing again.
+    echo [NOTE] Push requires login. If GitHub opened a browser window, please sign in.
     echo ==============================================================================
 )
 echo.
