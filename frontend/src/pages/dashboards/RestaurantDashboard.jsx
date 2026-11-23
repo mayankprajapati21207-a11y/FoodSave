@@ -271,9 +271,13 @@ const RestaurantDashboard = () => {
         discount_price: newListing.is_free_donation ? 0.0 : Number(newListing.discount_price),
         is_free_donation: newListing.is_free_donation,
         storage_info: newListing.storage_info,
+        expiry_time: expiresAt.toISOString(),
         expires_at: expiresAt.toISOString(),
+        pickup_start: now.toISOString(),
+        pickup_end: pickupUntil.toISOString(),
         pickup_until: pickupUntil.toISOString(),
-        safety_certified_by_owner: newListing.safety_certified_by_owner
+        safety_certified_by_owner: newListing.safety_certified_by_owner,
+        image_url: newListing.image_url || "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?auto=format&fit=crop&w=600&q=80"
       });
 
       confetti({ particleCount: 70, spread: 60 });
@@ -292,8 +296,13 @@ const RestaurantDashboard = () => {
         safety_certified_by_owner: true,
       });
       loadAllData();
+      alert('Surplus food listing published successfully!');
     } catch (err) {
-      alert(err.response?.data?.detail || 'Failed to create food listing');
+      const detail = err.response?.data?.detail;
+      const message = Array.isArray(detail)
+        ? detail.map(d => `${d.loc ? d.loc.slice(1).join('.') : 'field'}: ${d.msg}`).join('\n')
+        : (typeof detail === 'string' ? detail : 'Failed to create food listing');
+      alert(message);
     }
   };
 

@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException, status, Query
 from sqlalchemy.orm import Session
 from typing import List, Optional
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 from app.core.database import get_db
 from app.core.security import get_current_user, require_roles
 from app.models.models import (
@@ -70,8 +70,7 @@ def create_listing(
 
     # Safety verification check: expiry must be in the future, safety checklist acknowledged
     now = datetime.now(timezone.utc)
-    # Convert naive to UTC if needed
-    expiry = listing_in.expiry_time
+    expiry = listing_in.expiry_time or listing_in.expires_at or (now + timedelta(hours=24))
     if expiry.tzinfo is None:
         expiry = expiry.replace(tzinfo=timezone.utc)
 
@@ -87,6 +86,14 @@ def create_listing(
             detail="Food safety verification required: You must certify proper temperature control and hygienic packing before listing."
         )
 
+    p_start = listing_in.pickup_start or now
+    if p_start.tzinfo is None:
+        p_start = p_start.replace(tzinfo=timezone.utc)
+
+    p_end = listing_in.pickup_end or listing_in.pickup_until or expiry
+    if p_end.tzinfo is None:
+        p_end = p_end.replace(tzinfo=timezone.utc)
+
     new_listing = FoodListing(
         restaurant_id=restaurant.id,
         title=listing_in.title,
@@ -98,9 +105,9 @@ def create_listing(
         discount_price=listing_in.discount_price,
         is_free_donation=listing_in.is_free_donation,
         preparation_time=listing_in.preparation_time or now,
-        expiry_time=listing_in.expiry_time,
-        pickup_start=listing_in.pickup_start,
-        pickup_end=listing_in.pickup_end,
+        expiry_time=expiry,
+        pickup_start=p_start,
+        pickup_end=p_end,
         storage_info=listing_in.storage_info,
         image_url=listing_in.image_url or "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?auto=format&fit=crop&w=600&q=80",
         status="available",

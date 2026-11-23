@@ -223,9 +223,11 @@ class ListingBase(BaseModel):
     discount_price: float = 0.0
     is_free_donation: bool = False
     preparation_time: Optional[datetime] = None
-    expiry_time: datetime
-    pickup_start: datetime
-    pickup_end: datetime
+    expiry_time: Optional[datetime] = None
+    expires_at: Optional[datetime] = None
+    pickup_start: Optional[datetime] = None
+    pickup_end: Optional[datetime] = None
+    pickup_until: Optional[datetime] = None
     storage_info: str = "Freshly packed, refrigerated at 4°C"
     image_url: Optional[str] = None
     safety_certified_by_owner: bool = True

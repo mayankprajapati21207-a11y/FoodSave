@@ -172,6 +172,29 @@ export function handleMockFallback(config) {
   // Food Listings
   if (url.includes('/food-listings')) {
     const stored = getStoredData('listings', INITIAL_LISTINGS);
+    if (method === 'post') {
+      const body = typeof config.data === 'string' ? JSON.parse(config.data || '{}') : (config.data || {});
+      const newListing = {
+        id: stored.length + 1,
+        title: body.title || "Surplus Delicacy",
+        description: body.description || "",
+        category_id: Number(body.category_id) || 1,
+        category: { id: Number(body.category_id) || 1, name: "Cooked Meals" },
+        restaurant_id: 1,
+        restaurant: INITIAL_RESTAURANTS[0],
+        quantity: Number(body.quantity) || 10,
+        unit: body.unit || "portions",
+        original_price: Number(body.original_price) || 350.0,
+        discount_price: body.is_free_donation ? 0.0 : Number(body.discount_price) || 120.0,
+        is_free_donation: Boolean(body.is_free_donation),
+        storage_info: body.storage_info || "Freshly packed, refrigerated at 4°C",
+        status: "available",
+        image_url: body.image_url || "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?auto=format&fit=crop&w=600&q=80"
+      };
+      stored.unshift(newListing);
+      saveStoredData('listings', stored);
+      return { data: newListing, status: 200 };
+    }
     return { data: Array.isArray(stored) ? stored : INITIAL_LISTINGS, status: 200 };
   }
 
