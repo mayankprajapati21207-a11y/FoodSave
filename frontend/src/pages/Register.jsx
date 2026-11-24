@@ -81,9 +81,9 @@ const Register = () => {
         donor: '/dashboard/donor',
         customer: '/dashboard/customer',
       };
-      navigate(rolePaths[userData.role] || '/');
+      navigate(rolePaths[userData?.role] || '/dashboard/customer');
     } catch (err) {
-      setError(err.response?.data?.detail || 'Registration failed. Please check inputs.');
+      setError(err.response?.data?.detail || err.message || 'Registration failed. Please check inputs.');
     } finally {
       setLoading(false);
     }

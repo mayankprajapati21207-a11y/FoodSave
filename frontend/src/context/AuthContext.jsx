@@ -93,12 +93,16 @@ export const AuthProvider = ({ children }) => {
   const login = async (email, password) => {
     try {
       const res = await api.post('/auth/login', { email, password });
-      const { access_token, user: userData } = res.data;
-      setToken(access_token);
-      setUser(userData);
-      localStorage.setItem('foodsave_token', access_token);
-      localStorage.setItem('foodsave_user', JSON.stringify(userData));
-      return userData;
+      const userData = res.data?.user || res.data;
+      const access_token = res.data?.access_token || `jwt_foodsave_${Date.now()}`;
+      if (userData && userData.role) {
+        setToken(access_token);
+        setUser(userData);
+        localStorage.setItem('foodsave_token', access_token);
+        localStorage.setItem('foodsave_user', JSON.stringify(userData));
+        return userData;
+      }
+      throw new Error('Invalid user response');
     } catch (err) {
       // Check if email matches one of the demo accounts for seamless fallback
       const matchingDemo = Object.values(DEMO_PROFILES).find(
@@ -119,12 +123,16 @@ export const AuthProvider = ({ children }) => {
   const register = async (formData) => {
     try {
       const res = await api.post('/auth/register', formData);
-      const { access_token, user: userData } = res.data;
-      setToken(access_token);
-      setUser(userData);
-      localStorage.setItem('foodsave_token', access_token);
-      localStorage.setItem('foodsave_user', JSON.stringify(userData));
-      return userData;
+      const userData = res.data?.user || res.data;
+      const access_token = res.data?.access_token || `jwt_foodsave_${Date.now()}`;
+      if (userData && userData.role) {
+        setToken(access_token);
+        setUser(userData);
+        localStorage.setItem('foodsave_token', access_token);
+        localStorage.setItem('foodsave_user', JSON.stringify(userData));
+        return userData;
+      }
+      throw new Error('Invalid registration response');
     } catch (err) {
       // Offline / fallback registration
       const newMockUser = {

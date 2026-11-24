@@ -26,6 +26,142 @@ export function handleMockFallback(config) {
 
   console.info(`[FoodSave Mock Engine] Serving: ${method.toUpperCase()} ${url}`);
 
+  // Auth: Registration
+  if (url.includes('/auth/register')) {
+    let body = {};
+    if (typeof config.data === 'string') {
+      try {
+        body = JSON.parse(config.data || '{}');
+      } catch (e) {
+        body = {};
+      }
+    } else if (config.data && typeof config.data === 'object') {
+      body = config.data;
+    }
+    const role = body.role || 'customer';
+    const newId = Date.now();
+    const newUser = {
+      id: newId,
+      email: body.email || 'user@foodsave.org',
+      full_name: body.full_name || 'FoodSave Partner',
+      phone: body.phone || '+91 99784 28476',
+      role: role,
+      is_active: true,
+      is_verified: true,
+      avatar_url: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=200&q=80',
+      created_at: new Date().toISOString()
+    };
+
+    // Store in registered users list
+    const regUsers = getStoredData('registered_users', []);
+    regUsers.push({ ...newUser, password: body.password });
+    saveStoredData('registered_users', regUsers);
+
+    // Profile initialization for role
+    if (role === 'restaurant') {
+      const rests = getStoredData('restaurants', INITIAL_RESTAURANTS);
+      const newRest = {
+        id: newId,
+        user_id: newId,
+        name: body.restaurant_name || body.full_name || "My Restaurant",
+        cuisine_type: body.restaurant_cuisine || "Authentic Cuisine",
+        address: body.restaurant_address || "SG Highway, Thaltej, Ahmedabad",
+        city: "Ahmedabad",
+        rating: 5.0,
+        opening_hours: "11:00 AM - 11:00 PM",
+        description: "Fresh cuisine with zero food waste commitment.",
+        image_url: "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?auto=format&fit=crop&w=800&q=80",
+        latitude: 23.0500,
+        longitude: 72.5100
+      };
+      rests.unshift(newRest);
+      saveStoredData('restaurants', rests);
+      saveStoredData('my_restaurant_profile', newRest);
+    } else if (role === 'ngo') {
+      const ngos = getStoredData('ngos', INITIAL_NGOS);
+      const newNgo = {
+        id: newId,
+        user_id: newId,
+        organization_name: body.ngo_name || body.full_name || "Community Food Relief NGO",
+        registration_number: body.ngo_registration_number || "GJ/AHM/2026/089",
+        capacity_people_served: 750,
+        address: body.ngo_address || "Thaltej, Ahmedabad",
+        latitude: 23.0520,
+        longitude: 72.5120,
+        is_verified: true
+      };
+      ngos.unshift(newNgo);
+      saveStoredData('ngos', ngos);
+      saveStoredData('my_ngo_profile', newNgo);
+    } else if (role === 'donor') {
+      const newDonor = {
+        id: newId,
+        user_id: newId,
+        organization_name: body.donor_org_name || body.full_name || "Community Food Donor",
+        donor_type: body.donor_type || "organization",
+        address: "Bodakdev, SG Highway, Ahmedabad",
+        is_verified: true
+      };
+      saveStoredData('my_donor_profile', newDonor);
+    }
+
+    const token = `jwt_mock_${newId}`;
+    return {
+      data: {
+        access_token: token,
+        token_type: "bearer",
+        user: newUser
+      },
+      status: 200
+    };
+  }
+
+  // Auth: Login
+  if (url.includes('/auth/login')) {
+    const body = typeof config.data === 'string' ? JSON.parse(config.data || '{}') : (config.data || {});
+    const email = (body.email || '').toLowerCase();
+
+    const demoProfiles = {
+      'admin@foodsave.org': { id: 1, email: 'admin@foodsave.org', full_name: 'Priya Sharma (Admin)', role: 'super_admin', is_active: true },
+      'bistro@foodsave.org': { id: 2, email: 'bistro@foodsave.org', full_name: 'Rajesh Patel (Chef)', role: 'restaurant', is_active: true },
+      'ngo@foodsave.org': { id: 3, email: 'ngo@foodsave.org', full_name: 'Dharmesh Shah (NGO)', role: 'ngo', is_active: true },
+      'donor@foodsave.org': { id: 4, email: 'donor@foodsave.org', full_name: 'Anil Mehta (Donor)', role: 'donor', is_active: true },
+      'customer@foodsave.org': { id: 5, email: 'customer@foodsave.org', full_name: 'Aarav Joshi', role: 'customer', is_active: true }
+    };
+
+    const regUsers = getStoredData('registered_users', []);
+    const foundReg = regUsers.find((u) => (u.email || '').toLowerCase() === email);
+    const demo = demoProfiles[email];
+
+    const loggedUser = foundReg || demo || {
+      id: Date.now(),
+      email: body.email || 'user@foodsave.org',
+      full_name: (body.email || 'user').split('@')[0],
+      role: 'customer',
+      is_active: true,
+      is_verified: true,
+      avatar_url: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=200&q=80',
+      created_at: new Date().toISOString()
+    };
+
+    const token = `jwt_mock_${loggedUser.id}`;
+    return {
+      data: {
+        access_token: token,
+        token_type: "bearer",
+        user: loggedUser
+      },
+      status: 200
+    };
+  }
+
+  // Auth: Current Profile Check
+  if (url.includes('/auth/me')) {
+    const saved = localStorage.getItem('foodsave_user');
+    const u = saved ? JSON.parse(saved) : { id: 1, email: 'customer@foodsave.org', full_name: 'Aarav Joshi', role: 'customer' };
+    return { data: u, status: 200 };
+  }
+
   // Categories
   if (url.includes('/categories')) {
     return { data: INITIAL_CATEGORIES, status: 200 };
@@ -51,8 +187,56 @@ export function handleMockFallback(config) {
     };
   }
 
+  // NGO My Stats
+  if (url.includes('/ngos/my-stats')) {
+    return {
+      data: {
+        organization_name: "Robin Hood Army Ahmedabad (Thaltej Chapter)",
+        is_verified: true,
+        capacity_people_served: 850,
+        total_food_collected_kg: 185.0,
+        meals_distributed: 462,
+        co2_diverted_kg: 462.5,
+        active_pickups_count: 2
+      },
+      status: 200
+    };
+  }
+
+  // Donor My Stats
+  if (url.includes('/donors/my-stats')) {
+    return {
+      data: {
+        total_donations_count: 2,
+        collected_donations_count: 1,
+        total_kg_donated: 115.0,
+        meals_provided: 287,
+        co2_saved_kg: 287.5
+      },
+      status: 200
+    };
+  }
+
   if (url.includes('/restaurants/my-profile')) {
-    return { data: INITIAL_RESTAURANTS[0], status: 200 };
+    const customProfile = getStoredData('my_restaurant_profile', INITIAL_RESTAURANTS[0]);
+    return { data: customProfile, status: 200 };
+  }
+
+  // NGO Profile
+  if (url.includes('/ngos/my-profile')) {
+    const customNgo = getStoredData('my_ngo_profile', INITIAL_NGOS[0]);
+    return { data: customNgo, status: 200 };
+  }
+
+  // Donor Profile
+  if (url.includes('/donors/my-profile')) {
+    const customDonor = getStoredData('my_donor_profile', {
+      id: 1,
+      organization_name: "Mehta Banquets & Catering",
+      donor_type: "organization",
+      address: "Bodakdev, SG Highway, Ahmedabad"
+    });
+    return { data: customDonor, status: 200 };
   }
 
   if (url.includes('/restaurants/forecast/next-day')) {
