@@ -26,7 +26,7 @@ git remote add origin %REPO_URL%
 git branch -M main
 
 git add .
-git commit -m "Fix GitHub Actions deployment with legacy-peer-deps and gh-pages publish"
+git commit -m "Update FoodSave: Client-side registration, login, and Netlify configuration" >nul 2>&1
 
 echo.
 echo [*] Pushing to GitHub main branch...
